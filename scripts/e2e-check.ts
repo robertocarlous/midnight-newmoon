@@ -16,6 +16,7 @@ import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-pri
 import { NodeZkConfigProvider } from '@midnight-ntwrk/midnight-js-node-zk-config-provider';
 import { resolveNetwork, getOrCreateSeed, getDeployment } from '../src/network';
 import { createWallet, persistWalletState } from '../src/wallet';
+import { makeWitnesses } from '../src/witnesses';
 import { CompiledContract } from '@midnight-ntwrk/compact-js';
 
 // @ts-expect-error wallet sync requires WebSocket
@@ -52,11 +53,12 @@ async function main() {
   const contractPath = path.join(zkConfigPath, 'contract', 'index.js');
   if (!fs.existsSync(contractPath)) fail('Compiled contract missing — run `npm run compile`.');
   const WhisperWall = await import(pathToFileURL(contractPath).href);
-  // Vacant witnesses are fine here: e2e-check only reads ledger state and
-  // reconnects to the contract, it never calls submitFeedback (which is the
-  // only circuit that invokes the authorSecret witness).
+  // The Contract constructor validates that every declared witness name
+  // resolves to a function, even though e2e-check never calls submitFeedback
+  // (the only circuit that actually invokes authorSecret) - so a real
+  // witnesses object is required here too, not an empty one.
   const compiledContract = CompiledContract.make('whisper-wall', WhisperWall.Contract).pipe(
-    CompiledContract.withVacantWitnesses,
+    CompiledContract.withWitnesses(makeWitnesses(SEED) as any),
     CompiledContract.withCompiledFileAssets(zkConfigPath),
   );
 
