@@ -1,0 +1,38 @@
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// ─── Public ledger state ───────────────────────────────────────────────────
+// Everything below is visible to anyone reading the chain.
+
+// Total number of messages ever posted.
+export ledger feedbackCount: Uint<64>;
+
+// The most recently posted message. Fully public - anyone can read it.
+export ledger lastMessage: Opaque<"string">;
+
+// A commitment (hash) to the author's private identity secret. It proves
+// "the same author" can be recognized again without ever revealing who
+// they are - the secret itself never touches the ledger.
+export ledger lastAuthorCommitment: Bytes<32>;
+
+// ─── Private witness ───────────────────────────────────────────────────────
+// Supplied locally by the caller's TypeScript driver at proving time. Its
+// return value never appears on-chain unless a circuit explicitly discloses
+// it (or a value derived from it).
+witness authorSecret(): Bytes<32>;
+
+// ─── Circuit ────────────────────────────────────────────────────────────────
+// Post a public message while keeping the author's identity private. The
+// message is deliberately disclosed (it's the whole point of the board);
+// the author secret is deliberately NEVER disclosed - only its one-way hash
+// is, so the same person can later prove authorship without deanonymizing
+// themselves to anyone else.
+export circuit submitFeedback(message: Opaque<"string">): [] {
+    const secret = authorSecret();
+    const commitment = persistentHash<Bytes<32>>(secret);
+
+    lastAuthorCommitment = disclose(commitment);
+    lastMessage = disclose(message);
+    feedbackCount = feedbackCount + 1 as Uint<64>;
+}
