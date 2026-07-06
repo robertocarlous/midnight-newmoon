@@ -58,3 +58,9 @@ temp/
 
 # Midnight wallet sync state (per-network serialized wallet state cache)
 .midnight-wallet-state/
+
+# Local private-state LevelDB store (levelPrivateStateProvider)
+midnight-level-db/
+
+# Claude Code harness-local state
+.claude/

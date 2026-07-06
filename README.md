@@ -74,6 +74,8 @@ export circuit submitFeedback(message: Opaque<"string">): [] {
 | --- | --- |
 | ![compile output](docs/screenshot-compile.png) | ![deploy output](docs/screenshot-deploy.png) |
 
+Deployed contract address (Preview): `079616525b2f3fbcedfcf7f21795a8453508825c8e51958a4e013ae48e06da3c`
+
 ## Quick start
 
 Requirements: Node 22, Docker (with Compose v2), and the Compact compiler at the version pinned in `.compact-version` at the create-mn-app repo root (the version this project was scaffolded against).
