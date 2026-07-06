@@ -1,0 +1,167 @@
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.page__tagline {
+  margin: 0.25rem 0 0;
+  color: var(--muted, #888);
+}
+
+.wallet-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 10px;
+}
+
+.wallet-bar__info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wallet-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #999;
+}
+.wallet-dot--connected {
+  background: #2ecc71;
+}
+.wallet-dot--connecting {
+  background: #f1c40f;
+}
+.wallet-dot--error {
+  background: #e74c3c;
+}
+
+.wallet-bar__network {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.wallet-bar__address {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.wallet-bar__error {
+  flex-basis: 100%;
+  color: #e74c3c;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.board__hint,
+.board__error {
+  padding: 1.5rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.board__error {
+  color: #e74c3c;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.board__form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.board__form input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  font-size: 1rem;
+}
+
+.board__tx {
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.board__state {
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.board__state dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0.5rem 0;
+}
+
+.board__state dt {
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.board__state dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.mono {
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+}
+
+.board__refresh {
+  margin-top: 0.5rem;
+}
+
+.privacy-proof {
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 1px solid;
+}
+
+.privacy-proof--yes {
+  border-color: #2ecc71;
+  background: rgba(46, 204, 113, 0.08);
+}
+
+.privacy-proof--no {
+  border-color: rgba(128, 128, 128, 0.3);
+}
+
+.privacy-proof h3 {
+  margin-top: 0;
+}
+
+.privacy-proof__detail {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.page__footer {
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
