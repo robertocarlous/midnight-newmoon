@@ -35,7 +35,13 @@ async function buildProviders(api: ConnectedAPI, networkId: NetworkId) {
   const indexer = config?.indexerUri ?? fallback.indexer;
   const indexerWS = config?.indexerWsUri ?? fallback.indexerWS;
 
-  const zkConfigProvider = new FetchZkConfigProvider<string>(ZK_BASE_URL);
+  // Explicit native fetch: FetchZkConfigProvider defaults to cross-fetch,
+  // whose environment detection can pick its Node (node-fetch) code path
+  // instead of the browser one once vite-plugin-node-polyfills is active,
+  // silently breaking the zk-asset fetch (surfaced as an opaque
+  // "Failed to read verifier key for whisper-wall#submitFeedback").
+  // Binding the real browser fetch sidesteps that detection entirely.
+  const zkConfigProvider = new FetchZkConfigProvider<string>(ZK_BASE_URL, window.fetch.bind(window));
   const { unshieldedAddress } = await api.getUnshieldedAddress();
   const witnesses = makeWitnesses(unshieldedAddress);
 
