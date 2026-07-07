@@ -1,6 +1,8 @@
 import { WalletProvider } from './context/WalletContext';
 import { WalletBar } from './components/WalletBar';
 import { WhisperWallBoard } from './components/WhisperWallBoard';
+import { DeployPanel } from './components/DeployPanel';
+import { CONTRACT_ADDRESS } from './midnight/network';
 import './App.css';
 
 function App() {
@@ -13,7 +15,7 @@ function App() {
         </header>
         <WalletBar />
         <main className="page__main">
-          <WhisperWallBoard />
+          {CONTRACT_ADDRESS ? <WhisperWallBoard /> : <DeployPanel />}
         </main>
         <footer className="page__footer">
           <a href="https://github.com/robertocarlous/midnight-newmoon" target="_blank" rel="noreferrer">

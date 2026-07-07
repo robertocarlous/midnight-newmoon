@@ -80,6 +80,30 @@
   color: #e74c3c;
 }
 
+.deploy-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.deploy-panel--done {
+  border: 1px solid #2ecc71;
+  border-radius: 10px;
+  background: rgba(46, 204, 113, 0.08);
+}
+
+.deploy-panel code {
+  word-break: break-all;
+}
+
+.deploy-panel__detail {
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
 .board {
   display: flex;
   flex-direction: column;

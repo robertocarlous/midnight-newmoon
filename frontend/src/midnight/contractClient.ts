@@ -1,9 +1,9 @@
-// Wires together every provider needed to call circuits on the deployed
+// Wires together every provider needed to deploy/call circuits on the
 // whisper-wall contract from the browser, using a connected Lace wallet for
 // signing/balancing/proving instead of a local seed.
 import type { ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { CompiledContract } from '@midnight-ntwrk/compact-js';
-import { findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
+import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
@@ -27,11 +27,7 @@ export interface WhisperWallClient {
 
 const ZK_BASE_URL = `${window.location.origin}/managed/whisper-wall`;
 
-export async function connectWhisperWallClient(
-  api: ConnectedAPI,
-  contractAddress: string,
-  networkId: NetworkId,
-): Promise<WhisperWallClient> {
+async function buildProviders(api: ConnectedAPI, networkId: NetworkId) {
   setNetworkId(networkId);
 
   const config = await api.getConfiguration().catch(() => null);
@@ -70,11 +66,10 @@ export async function connectWhisperWallClient(
     midnightProvider: walletAndMidnightProvider,
   };
 
-  const deployed: any = await findDeployedContract(providers, {
-    compiledContract: compiledContract as any,
-    contractAddress,
-  });
+  return { providers, compiledContract };
+}
 
+function wrapDeployed(deployed: any, contractAddress: string, providers: any): WhisperWallClient {
   return {
     async postMessage(message: string) {
       const tx = await deployed.callTx.submitFeedback(message);
@@ -91,4 +86,37 @@ export async function connectWhisperWallClient(
       };
     },
   };
+}
+
+export async function connectWhisperWallClient(
+  api: ConnectedAPI,
+  contractAddress: string,
+  networkId: NetworkId,
+): Promise<WhisperWallClient> {
+  const { providers, compiledContract } = await buildProviders(api, networkId);
+  const deployed: any = await findDeployedContract(providers, {
+    compiledContract: compiledContract as any,
+    contractAddress,
+  });
+  return wrapDeployed(deployed, contractAddress, providers);
+}
+
+/**
+ * Deploys a brand-new instance of whisper-wall using the connected wallet as
+ * the deployer. Used from the DeployPanel (see components/DeployPanel.tsx)
+ * when no contract address is configured yet - lets a Lace wallet that's
+ * already synced to Preprod deploy without going through the slow from-seed
+ * CLI wallet sync.
+ */
+export async function deployWhisperWallContract(
+  api: ConnectedAPI,
+  networkId: NetworkId,
+): Promise<{ address: string; client: WhisperWallClient }> {
+  const { providers, compiledContract } = await buildProviders(api, networkId);
+  const deployed: any = await deployContract(providers, {
+    compiledContract: compiledContract as any,
+    args: [],
+  });
+  const address = deployed.deployTxData.public.contractAddress as string;
+  return { address, client: wrapDeployed(deployed, address, providers) };
 }

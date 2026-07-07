@@ -34,6 +34,6 @@ export const NETWORK_CONFIGS: Record<NetworkId, NetworkConfig> = {
 
 // Deployed whisper-wall contract address on Preprod. Overridable via
 // VITE_CONTRACT_ADDRESS so the same build can point at a different
-// deployment without a code change.
-export const CONTRACT_ADDRESS: string =
-  import.meta.env.VITE_CONTRACT_ADDRESS ?? '__PREPROD_CONTRACT_ADDRESS__';
+// deployment without a code change. Empty until a contract is deployed -
+// the app shows the DeployPanel instead of the board while this is unset.
+export const CONTRACT_ADDRESS: string = import.meta.env.VITE_CONTRACT_ADDRESS ?? '';
