@@ -10,8 +10,8 @@ import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-conf
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 
 import * as WhisperWall from '../generated/whisper-wall/index.js';
-import { NETWORK_CONFIGS, type NetworkId } from './network';
-import { makeWalletAndMidnightProvider, makeWalletProofProvider } from './laceProviders';
+import { NETWORK_CONFIGS, PROOF_SERVER_URL, type NetworkId } from './network';
+import { makeWalletAndMidnightProvider, makeProofProvider } from './laceProviders';
 import { makeWitnesses } from './witnesses';
 
 export interface WhisperWallLedgerState {
@@ -45,7 +45,7 @@ async function buildProviders(api: ConnectedAPI, networkId: NetworkId) {
   );
 
   const walletAndMidnightProvider = await makeWalletAndMidnightProvider(api, networkId);
-  const proofProvider = await makeWalletProofProvider(api, zkConfigProvider);
+  const proofProvider = await makeProofProvider(api, zkConfigProvider, PROOF_SERVER_URL);
 
   const providers = {
     privateStateProvider: levelPrivateStateProvider({

@@ -11,6 +11,7 @@ import { createProofProvider, type ProofProvider } from '@midnight-ntwrk/midnigh
 import type { WalletProvider } from '@midnight-ntwrk/midnight-js-types';
 import type { MidnightProvider } from '@midnight-ntwrk/midnight-js-types';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
+import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { MidnightBech32m, ShieldedCoinPublicKey, ShieldedEncryptionPublicKey } from '@midnight-ntwrk/wallet-sdk-address-format';
 
 function hexToBytes(hex: string): Uint8Array {
@@ -62,19 +63,36 @@ export async function makeWalletAndMidnightProvider(
 }
 
 /**
- * Builds a ProofProvider that delegates proof generation to the connected
- * wallet (`getProvingProvider`) instead of talking to a local proof-server.
- * This is what makes the deployed frontend work without hosting a
- * proof-server reachable from the browser: proving happens wallet-side.
+ * Builds a ProofProvider for the deployed dApp to prove transactions with.
+ *
+ * Ideally this would delegate proving to the connected wallet
+ * (`getProvingProvider`), so the deployed frontend would need no
+ * proof-server of its own. As of writing, though, Lace's DApp Connector API
+ * doesn't implement `getProvingProvider` for Preprod (calling it throws
+ * "getProvingProvider is not a function"), and the publicly documented
+ * remote proof-server for Preprod doesn't resolve either - a known issue
+ * (see the Midnight forum). So this prefers wallet-delegated proving if a
+ * future Lace version supports it, and otherwise falls back to a
+ * proof-server reachable from the browser - by default the same
+ * docker-compose proof-server the root CLI uses, running on the user's own
+ * machine at http://localhost:6300.
  */
-export async function makeWalletProofProvider(
+export async function makeProofProvider(
   api: ConnectedAPI,
   zkConfigProvider: FetchZkConfigProvider<string>,
+  fallbackProofServerUrl: string,
 ): Promise<ProofProvider> {
-  const provingProvider = await api.getProvingProvider({
-    getZKIR: (loc) => zkConfigProvider.getZKIR(loc),
-    getProverKey: (loc) => zkConfigProvider.getProverKey(loc),
-    getVerifierKey: (loc) => zkConfigProvider.getVerifierKey(loc),
-  });
-  return createProofProvider(provingProvider);
+  if (typeof (api as unknown as { getProvingProvider?: unknown }).getProvingProvider === 'function') {
+    try {
+      const provingProvider = await api.getProvingProvider({
+        getZKIR: (loc) => zkConfigProvider.getZKIR(loc),
+        getProverKey: (loc) => zkConfigProvider.getProverKey(loc),
+        getVerifierKey: (loc) => zkConfigProvider.getVerifierKey(loc),
+      });
+      return createProofProvider(provingProvider);
+    } catch {
+      // Fall through to the local proof-server below.
+    }
+  }
+  return httpClientProofProvider(fallbackProofServerUrl, zkConfigProvider);
 }

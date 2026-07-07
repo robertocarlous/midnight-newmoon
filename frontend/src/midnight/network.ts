@@ -37,3 +37,13 @@ export const NETWORK_CONFIGS: Record<NetworkId, NetworkConfig> = {
 // deployment without a code change. Empty until a contract is deployed -
 // the app shows the DeployPanel instead of the board while this is unset.
 export const CONTRACT_ADDRESS: string = import.meta.env.VITE_CONTRACT_ADDRESS ?? '';
+
+// As of writing, Lace does not implement wallet-delegated proving
+// (getProvingProvider) for Preprod, and the publicly documented remote
+// proof-server URL for Preprod (lace-proof-pub.preprod.midnight.network)
+// does not resolve - a known issue on the Midnight forum. Lace's own
+// Settings > Midnight also only supports a local proof-server. So this app
+// runs proving itself against a proof-server on the user's own machine,
+// same as the root CLI's docker-compose service - overridable in case a
+// public one becomes available.
+export const PROOF_SERVER_URL: string = import.meta.env.VITE_PROOF_SERVER_URL ?? 'http://127.0.0.1:6300';
