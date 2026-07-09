@@ -15,8 +15,10 @@ build/
 .env.test.local
 .env.production.local
 
-# Contract artifacts
-contracts/managed/
+# Compiled contract artifacts (contracts/managed/) are committed
+# intentionally - they're the evidence that `compact compile` succeeded
+# (circuits, keys, zkir). Re-run `npm run compile` after changing the
+# .compact source and commit the diff.
 
 # Deployment info
 deployment.json

@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["contracts/whisper-wall.compact", "compiler/standard-library.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;;;;MA8BA,AAAA,cAOC;;;;;cAP6B,SAAyB;;;;;;;;;;;yCAAzB,SAAyB;;;;;;;;;gDAAzB,SAAyB;;;OAOtD;;;;GACA;EAtCD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAQA;;;;;;;;;yEAAsC;IAGtC;;;;;;;;;yEAA4C;IAK5C;;;;;;;;;yEAA8C;;;;;;;GAsB7C;ECtCD,AAAA,kBAAA;oEAAA;;;EDsBA,AAAA,eAAkC;;0DAAlC,YAAkC;;;;;;;;;;;;;;GAAA;EAQlC,AAAA,iBAOC,4BAP6B,SAAyB;UAC7C,QAAuB;UACvB,YAA8C,0BAAP,QAAM;IAEnD;;;;;;;2HAAgC,YAAU;;yEAAtB;IACpB;;;;;;;2HAAuB,SAAO;;yEAAnB;UACX,KAAa;;;;;6CAAG;;;;;;;;;;;kHAAa;;;IAA7B;;;;;;;2HAAA,KAAa;;yEAAA;;GAChB;;;;;;;;;;;;;;;;IA7BD;qCAAA;;;;;;;;;;;0GAAsC;KAAA;IAGtC;qCAAA;;;;;;;;;;;0GAA4C;KAAA;IAK5C;qCAAA;;;;;;;;;;;0GAA8C;KAAA;;;;;;;;;;"
+}

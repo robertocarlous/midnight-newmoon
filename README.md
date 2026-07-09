@@ -76,6 +76,15 @@ export circuit submitFeedback(message: Opaque<"string">): [] {
 
 Deployed contract address (Preview): `079616525b2f3fbcedfcf7f21795a8453508825c8e51958a4e013ae48e06da3c`
 
+The compiled output shown above is committed at
+[`contracts/managed/whisper-wall/`](contracts/managed/whisper-wall/) —
+the ZK circuit ([`zkir/submitFeedback.zkir`](contracts/managed/whisper-wall/zkir/submitFeedback.zkir)),
+its proving/verifying keys ([`keys/`](contracts/managed/whisper-wall/keys/)),
+and the generated TypeScript bindings
+([`contract/index.d.ts`](contracts/managed/whisper-wall/contract/index.d.ts)) —
+alongside the source it was compiled from,
+[`contracts/whisper-wall.compact`](contracts/whisper-wall.compact).
+
 ## Quick start
 
 Requirements: Node 22, Docker (with Compose v2), and the Compact compiler at the version pinned in `.compact-version` at the create-mn-app repo root (the version this project was scaffolded against).
