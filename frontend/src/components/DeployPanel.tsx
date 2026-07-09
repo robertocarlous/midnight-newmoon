@@ -29,7 +29,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
  * Shown instead of the board when no contract address is configured
  * (VITE_CONTRACT_ADDRESS unset). Deploys a fresh whisper-wall instance using
  * the connected Lace wallet - avoids the slow from-seed sync the Node CLI
- * needs, since a Lace wallet that's already used Preprod stays synced.
+ * needs, since a Lace wallet that's already used this network stays synced.
  */
 export function DeployPanel() {
   const { status, api, networkId } = useWallet();
@@ -58,7 +58,7 @@ export function DeployPanel() {
   }, [status, api]);
 
   if (status !== 'connected' || !api) {
-    return <p className="board__hint">Connect a Lace wallet (funded on Preprod) to deploy whisper-wall.</p>;
+    return <p className="board__hint">Connect a Lace wallet (funded on {networkId}) to deploy whisper-wall.</p>;
   }
 
   const handleDeploy = async () => {

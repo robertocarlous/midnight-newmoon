@@ -1,9 +1,17 @@
-// Network configuration for the frontend. Preprod is the target for Level 2
-// ("Lace onto Preprod"), but preview/undeployed are kept for local testing
-// against the same devnet used by the root CLI.
+// Network configuration for the frontend. Preprod is the intended target for
+// Level 2 ("Lace onto Preprod"); preview/undeployed are kept for local
+// testing and as a fallback - see README "Known issue: Preprod availability"
+// for why this currently defaults to preview. Overridable via VITE_NETWORK
+// without a code change once Preprod stabilizes.
 export type NetworkId = 'undeployed' | 'preview' | 'preprod';
 
-export const DEFAULT_NETWORK: NetworkId = 'preprod';
+function resolveDefaultNetwork(): NetworkId {
+  const fromEnv = import.meta.env.VITE_NETWORK;
+  if (fromEnv === 'undeployed' || fromEnv === 'preview' || fromEnv === 'preprod') return fromEnv;
+  return 'preview';
+}
+
+export const DEFAULT_NETWORK: NetworkId = resolveDefaultNetwork();
 
 export interface NetworkConfig {
   networkId: NetworkId;

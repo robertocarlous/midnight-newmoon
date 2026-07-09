@@ -2,7 +2,7 @@ import { WalletProvider } from './context/WalletContext';
 import { WalletBar } from './components/WalletBar';
 import { WhisperWallBoard } from './components/WhisperWallBoard';
 import { DeployPanel } from './components/DeployPanel';
-import { CONTRACT_ADDRESS } from './midnight/network';
+import { CONTRACT_ADDRESS, DEFAULT_NETWORK } from './midnight/network';
 import './App.css';
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
       <div className="page">
         <header className="page__header">
           <h1>🌒 Whisper Wall</h1>
-          <p className="page__tagline">An anonymous feedback board on Midnight — Preprod.</p>
+          <p className="page__tagline">An anonymous feedback board on Midnight — {DEFAULT_NETWORK}.</p>
         </header>
         <WalletBar />
         <main className="page__main">
