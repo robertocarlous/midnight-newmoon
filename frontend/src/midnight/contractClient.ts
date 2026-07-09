@@ -13,6 +13,7 @@ import * as WhisperWall from '../generated/whisper-wall/index.js';
 import { NETWORK_CONFIGS, PROOF_SERVER_URL, type NetworkId } from './network';
 import { makeWalletAndMidnightProvider, makeProofProvider } from './laceProviders';
 import { makeWitnesses } from './witnesses';
+import { describeError } from './errors';
 
 export interface WhisperWallLedgerState {
   feedbackCount: bigint;
@@ -20,9 +21,35 @@ export interface WhisperWallLedgerState {
   lastAuthorCommitment: Uint8Array;
 }
 
+export type DustRetryCallback = (attempt: number, maxAttempts: number) => void;
+
 export interface WhisperWallClient {
-  postMessage(message: string): Promise<{ txId: string }>;
+  postMessage(message: string, onDustRetry?: DustRetryCallback): Promise<{ txId: string }>;
   readLedger(): Promise<WhisperWallLedgerState | null>;
+}
+
+// A brand-new (or recently used) wallet's reported DUST balance is a
+// time-projection of what its registered NIGHT will eventually generate;
+// the tx-builder only spends what the *next block's timestamp* accounts
+// for, which can lag wall-clock by roughly a block right after funding or
+// registration. That shows up as "Insufficient Funds: could not balance
+// dust" even when DUST is genuinely accruing - the same transient failure
+// the root CLI's deploy.ts already retries around. This mirrors that.
+async function withDustRetry<T>(fn: () => Promise<T>, onRetry?: DustRetryCallback): Promise<T> {
+  const MAX_RETRIES = 20;
+  const RETRY_DELAY_MS = 5000;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const description = describeError(err);
+      const isDustShortage = /insufficient funds|not enough dust|could not balance dust/i.test(description);
+      if (!isDustShortage || attempt === MAX_RETRIES) throw err;
+      onRetry?.(attempt, MAX_RETRIES);
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+    }
+  }
+  throw new Error('unreachable');
 }
 
 const ZK_BASE_URL = `${window.location.origin}/managed/whisper-wall`;
@@ -78,8 +105,8 @@ async function buildProviders(api: ConnectedAPI, networkId: NetworkId) {
 
 function wrapDeployed(deployed: any, contractAddress: string, providers: any): WhisperWallClient {
   return {
-    async postMessage(message: string) {
-      const tx = await deployed.callTx.submitFeedback(message);
+    async postMessage(message: string, onDustRetry?: DustRetryCallback) {
+      const tx = await withDustRetry<any>(() => deployed.callTx.submitFeedback(message), onDustRetry);
       return { txId: tx.public.txId as string };
     },
     async readLedger() {
@@ -118,12 +145,17 @@ export async function connectWhisperWallClient(
 export async function deployWhisperWallContract(
   api: ConnectedAPI,
   networkId: NetworkId,
+  onDustRetry?: DustRetryCallback,
 ): Promise<{ address: string; client: WhisperWallClient }> {
   const { providers, compiledContract } = await buildProviders(api, networkId);
-  const deployed: any = await deployContract(providers, {
-    compiledContract: compiledContract as any,
-    args: [],
-  });
+  const deployed: any = await withDustRetry(
+    () =>
+      deployContract(providers, {
+        compiledContract: compiledContract as any,
+        args: [],
+      }),
+    onDustRetry,
+  );
   const address = deployed.deployTxData.public.contractAddress as string;
   return { address, client: wrapDeployed(deployed, address, providers) };
 }

@@ -19,6 +19,7 @@ export function WhisperWallBoard() {
   const [posting, setPosting] = useState(false);
   const [lastTxId, setLastTxId] = useState<string | null>(null);
   const [postError, setPostError] = useState<string | null>(null);
+  const [dustRetry, setDustRetry] = useState<{ attempt: number; max: number } | null>(null);
 
   // Connect the contract client whenever the wallet connects.
   useEffect(() => {
@@ -63,14 +64,16 @@ export function WhisperWallBoard() {
       setPosting(true);
       setPostError(null);
       setLastTxId(null);
+      setDustRetry(null);
       try {
-        const { txId } = await client.postMessage(message.trim());
+        const { txId } = await client.postMessage(message.trim(), (attempt, max) => setDustRetry({ attempt, max }));
         setLastTxId(txId);
         setMessage('');
         await refresh();
       } catch (err) {
         setPostError(describeError(err));
       } finally {
+        setDustRetry(null);
         setPosting(false);
       }
     },
@@ -103,7 +106,11 @@ export function WhisperWallBoard() {
           disabled={posting}
         />
         <button type="submit" disabled={posting || !message.trim()}>
-          {posting ? 'Proving + submitting…' : 'Post anonymously'}
+          {posting
+            ? dustRetry
+              ? `Waiting for DUST… (attempt ${dustRetry.attempt}/${dustRetry.max})`
+              : 'Proving + submitting…'
+            : 'Post anonymously'}
         </button>
       </form>
       {postError && <p className="board__error">{postError}</p>}

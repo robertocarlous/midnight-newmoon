@@ -39,6 +39,7 @@ export function DeployPanel() {
   const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dust, setDust] = useState<{ cap: bigint; balance: bigint } | null>(null);
+  const [dustRetry, setDustRetry] = useState<{ attempt: number; max: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -66,9 +67,13 @@ export function DeployPanel() {
     setDeploying(true);
     setError(null);
     setElapsed(0);
+    setDustRetry(null);
     timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
     try {
-      const { address } = await withTimeout(deployWhisperWallContract(api, networkId), DEPLOY_TIMEOUT_MS);
+      const { address } = await withTimeout(
+        deployWhisperWallContract(api, networkId, (attempt, max) => setDustRetry({ attempt, max })),
+        DEPLOY_TIMEOUT_MS,
+      );
       setAddress(address);
     } catch (err) {
       if (err instanceof Error && err.message === 'timeout') {
@@ -83,6 +88,7 @@ export function DeployPanel() {
       }
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
+      setDustRetry(null);
       setDeploying(false);
     }
   };
@@ -111,7 +117,11 @@ export function DeployPanel() {
         </p>
       )}
       <button onClick={handleDeploy} disabled={deploying}>
-        {deploying ? `Deploying… (${elapsed}s, this can take a few minutes)` : 'Deploy whisper-wall'}
+        {deploying
+          ? dustRetry
+            ? `Waiting for DUST… (attempt ${dustRetry.attempt}/${dustRetry.max})`
+            : `Deploying… (${elapsed}s, this can take a few minutes)`
+          : 'Deploy whisper-wall'}
       </button>
       {error && <p className="board__error">{error}</p>}
     </div>
