@@ -59,8 +59,9 @@ async function buildProviders(api: ConnectedAPI, networkId: NetworkId) {
       accountId: unshieldedAddress,
       // No real secret is stored via this provider (our witness derives its
       // secret from localStorage, see witnesses.ts) - the SDK still requires
-      // a >=16 char password to open the local store.
-      privateStoragePasswordProvider: () => 'whisper-wall-browser-local-store',
+      // a password with >=16 chars AND >=3 of {upper, lower, digit, special}
+      // to open the local store.
+      privateStoragePasswordProvider: () => 'Whisper-Wall-Browser-Store-9!',
     }),
     // Explicit webSocketImpl: the package defaults to the `ws` package's
     // WebSocket, which doesn't exist in a browser bundle (it resolves to
