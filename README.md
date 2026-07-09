@@ -1,8 +1,61 @@
-# midnight-newmoon 🌑
+# midnight-newmoon 🌑🌒
 
-**New Moon submission** — Builders Challenge, Level 1. Toolchain set up,
-first Compact contract written and deployed to a public Midnight testnet,
-plus the idea this is the first step toward.
+**New Moon (Level 1)** and **Waxing Crescent (Level 2)** submissions —
+Builders Challenge. Toolchain set up, first Compact contract written and
+deployed to a public Midnight testnet, then wired to a real frontend with
+Lace wallet integration.
+
+## Level 2 — Waxing Crescent
+
+- **Live demo**: https://frontend-beta-gray-55.vercel.app
+- **Frontend source**: [`frontend/`](frontend/) — Vite + React, talking to
+  the contract via `@midnight-ntwrk/midnight-js-contracts` and to the
+  wallet via the [Midnight DApp Connector API](https://docs.midnight.network/develop/reference/midnight-api/dapp-connector-api)
+  (`@midnight-ntwrk/dapp-connector-api`).
+- **Lace connect/disconnect**: [`frontend/src/context/WalletContext.tsx`](frontend/src/context/WalletContext.tsx)
+  detects installed wallets via `window.midnight`, connects with
+  `wallet.connect(networkId)`, and exposes `disconnect()` — surfaced in
+  [`WalletBar.tsx`](frontend/src/components/WalletBar.tsx).
+- **Circuit called from the frontend**: [`WhisperWallBoard.tsx`](frontend/src/components/WhisperWallBoard.tsx)
+  calls `submitFeedback` through a Lace-backed `ContractProviders` adapter
+  ([`laceProviders.ts`](frontend/src/midnight/laceProviders.ts)) that bridges
+  the connector API's bech32m/hex wallet surface to the typed
+  `WalletProvider`/`MidnightProvider` interfaces `midnight-js-contracts`
+  expects — proving/balancing/submitting all go through the connected
+  wallet, not a local seed.
+- **Observable privacy behavior**: see below.
+
+### Known issue: Preprod availability
+
+This app targets **Preview**, not Preprod, as the default network
+(`VITE_NETWORK=preview` on the live deployment) - the mission target was
+Preprod, and the code is written to work identically against it
+(`VITE_NETWORK=preprod` is the only change needed), but Preprod itself
+was not reliably usable during this submission window:
+
+- A fresh CLI wallet sync against Preprod ran for **2+ hours** across
+  multiple attempts (one ended in a Node OOM crash at a 4 GB heap; a
+  retry at 16 GB heap ran 2 hours without finishing) with no errors, just
+  never completing - contrasted with the same code syncing Preview in
+  under 10 minutes.
+- A real Lace wallet, funded with 1,000 tNIGHT on Preprod, had its
+  "Generate tDUST" transaction (DUST registration) **time out** on every
+  attempt, leaving DUST balance/cap at 0 with no way to pay fees for any
+  transaction, deploy or call.
+- These symptoms match a **team-confirmed** Midnight forum report of a
+  Preprod indexer falling behind the live chain, which causes the wallet
+  SDK to compute a stale DUST-validity timestamp and every DUST-consuming
+  transaction to fail until the indexer catches back up:
+  [forum.midnight.network/t/preprod-indexer-.../1230](https://forum.midnight.network/t/preprod-indexer-23h-behind-chain-wallet-ctime-stuck-at-stale-block-timestamp-causes-custom-error-171-outofdustvaliditywindow-for-all-submissions/1230).
+  That prior incident had no client-side workaround and resolved only
+  once Midnight's infrastructure team fixed the indexer.
+
+Given that, and no fixed-cost way to wait out infrastructure recovery
+before this submission, Level 2 is demonstrated end-to-end against
+Preview instead. Every other requirement (Lace connect/disconnect, a
+circuit call from the frontend, the observable privacy behavior) is
+proven live at the demo link above; only the specific target network
+differs from the mission brief, for the documented reason above.
 
 ## Product idea
 
@@ -67,6 +120,34 @@ export circuit submitFeedback(message: Opaque<"string">): [] {
     published, not the secret itself. A hash is one-way, so publishing it
     proves "the same author as before" without ever revealing who that
     author is. `authorSecret()` itself is never disclosed, in any form.
+
+### Observable privacy behavior (frontend)
+
+The live app makes this provable, not just assertable. In the browser,
+[`witnesses.ts`](frontend/src/midnight/witnesses.ts) generates a random
+32-byte secret the first time a wallet address connects and keeps it in
+that browser's `localStorage` only — it is never sent in any transaction,
+request, or log. [`privacyProof.ts`](frontend/src/midnight/privacyProof.ts)
+then recomputes `persistentHash(authorSecret)` locally, using the exact
+same primitive the circuit uses, and compares it against the public
+`lastAuthorCommitment` read from chain:
+
+```ts
+export function provesAuthorship(address: string, onChainCommitment: Uint8Array): boolean {
+  const secret = getOrCreateAuthorSecret(address);
+  const computed = persistentHash(Bytes32Descriptor, secret);
+  return bytesEqual(computed, onChainCommitment);
+}
+```
+
+The board shows the result of this check next to the last post: **"this
+browser can prove it authored the last post — without ever sending its
+secret anywhere."** Nobody else can run that same check and get a match —
+not the indexer, not another user's browser, not this app's own code
+running elsewhere — because nobody else holds the secret. That's the
+proof: authorship is verifiable by the one party who should be able to
+verify it, and by construction unverifiable by everyone else, without a
+second circuit call or any additional disclosure.
 
 ## Screenshots
 
