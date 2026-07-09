@@ -3,6 +3,7 @@ import { useWallet } from '../context/WalletContext';
 import { connectWhisperWallClient, type WhisperWallClient, type WhisperWallLedgerState } from '../midnight/contractClient';
 import { provesAuthorship, bytesToHex } from '../midnight/privacyProof';
 import { CONTRACT_ADDRESS } from '../midnight/network';
+import { describeError } from '../midnight/errors';
 
 type ClientStatus = 'idle' | 'connecting' | 'ready' | 'error';
 
@@ -68,7 +69,7 @@ export function WhisperWallBoard() {
         setMessage('');
         await refresh();
       } catch (err) {
-        setPostError(err instanceof Error ? err.message : String(err));
+        setPostError(describeError(err));
       } finally {
         setPosting(false);
       }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { deployWhisperWallContract } from '../midnight/contractClient';
+import { describeError } from '../midnight/errors';
 
 // deployContract waits indefinitely for the indexer to see the transaction
 // confirmed, with no built-in timeout - if the tx never lands (most often:
@@ -78,7 +79,7 @@ export function DeployPanel() {
             `deploy transaction. Wait a bit and try again, or check Lace's own activity/transaction view.`,
         );
       } else {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(describeError(err));
       }
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
