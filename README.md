@@ -166,6 +166,11 @@ and the generated TypeScript bindings
 alongside the source it was compiled from,
 [`contracts/whisper-wall.compact`](contracts/whisper-wall.compact).
 
+
+## DEMO VIDEO LINK 
+https://www.loom.com/share/aae3ab2cd7254c648b52bf704660976b
+
+
 ## Quick start
 
 Requirements: Node 22, Docker (with Compose v2), and the Compact compiler at the version pinned in `.compact-version` at the create-mn-app repo root (the version this project was scaffolded against).
