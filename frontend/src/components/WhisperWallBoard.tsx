@@ -4,6 +4,7 @@ import { connectWhisperWallClient, type WhisperWallClient, type WhisperWallLedge
 import { provesAuthorship, bytesToHex } from '../midnight/privacyProof';
 import { CONTRACT_ADDRESS } from '../midnight/network';
 import { describeError } from '../midnight/errors';
+import { CopyableCode } from './CopyableCode';
 
 type ClientStatus = 'idle' | 'connecting' | 'ready' | 'error';
 
@@ -81,22 +82,36 @@ export function WhisperWallBoard() {
   );
 
   if (walletStatus !== 'connected') {
-    return <p className="board__hint">Connect a Lace wallet to read and post to the wall.</p>;
+    return (
+      <div className="card card--empty">
+        <p className="board__hint">Connect a Lace wallet to read and post to the wall.</p>
+      </div>
+    );
   }
 
   if (clientStatus === 'connecting' || clientStatus === 'idle') {
-    return <p className="board__hint">Connecting to whisper-wall on {networkId}…</p>;
+    return (
+      <div className="card card--empty">
+        <span className="spinner" aria-hidden="true" />
+        <p className="board__hint">Connecting to whisper-wall on {networkId}…</p>
+      </div>
+    );
   }
 
   if (clientStatus === 'error') {
-    return <p className="board__error">Failed to connect to the contract: {clientError}</p>;
+    return (
+      <div className="banner banner--error">
+        <strong>Failed to connect to the contract</strong>
+        <p>{clientError}</p>
+      </div>
+    );
   }
 
   const provesIsAuthor = ledger && unshieldedAddress ? provesAuthorship(unshieldedAddress, ledger.lastAuthorCommitment) : false;
 
   return (
     <div className="board">
-      <form className="board__form" onSubmit={handlePost}>
+      <form className="card board__form" onSubmit={handlePost}>
         <input
           type="text"
           placeholder="Say something anonymous…"
@@ -105,43 +120,55 @@ export function WhisperWallBoard() {
           maxLength={280}
           disabled={posting}
         />
-        <button type="submit" disabled={posting || !message.trim()}>
+        <button className="btn btn--primary" type="submit" disabled={posting || !message.trim()}>
           {posting
             ? dustRetry
-              ? `Waiting for DUST… (attempt ${dustRetry.attempt}/${dustRetry.max})`
+              ? `Waiting for DUST… (${dustRetry.attempt}/${dustRetry.max})`
               : 'Proving + submitting…'
             : 'Post anonymously'}
         </button>
       </form>
-      {postError && <p className="board__error">{postError}</p>}
+
+      {postError && (
+        <div className="banner banner--error">
+          <strong>Couldn't post</strong>
+          <p>{postError}</p>
+        </div>
+      )}
       {lastTxId && (
-        <p className="board__tx">
-          ✅ Posted. Tx: <code>{lastTxId}</code>
-        </p>
+        <div className="banner banner--success">
+          <strong>✅ Posted</strong>
+          <CopyableCode value={lastTxId} />
+        </div>
       )}
 
-      <div className="board__state">
+      <div className="card board__state">
         <h3>Public ledger state</h3>
-        <dl>
-          <dt>feedbackCount</dt>
-          <dd>{ledger?.feedbackCount.toString() ?? '—'}</dd>
-          <dt>lastMessage</dt>
-          <dd>{ledger ? `"${ledger.lastMessage}"` : '—'}</dd>
-          <dt>lastAuthorCommitment</dt>
-          <dd className="mono">{ledger ? bytesToHex(ledger.lastAuthorCommitment) : '—'}</dd>
-        </dl>
-        <button onClick={refresh} className="board__refresh">
-          Refresh
+        <div className="stat-row">
+          <div className="stat-tile">
+            <span className="stat-tile__label">feedbackCount</span>
+            <span className="stat-tile__value">{ledger?.feedbackCount.toString() ?? '—'}</span>
+          </div>
+          <div className="stat-tile stat-tile--wide">
+            <span className="stat-tile__label">lastAuthorCommitment</span>
+            {ledger ? <CopyableCode value={bytesToHex(ledger.lastAuthorCommitment)} /> : <span className="stat-tile__value">—</span>}
+          </div>
+        </div>
+        <blockquote className="board__quote">{ledger ? `"${ledger.lastMessage}"` : 'No messages yet.'}</blockquote>
+        <button onClick={refresh} className="btn btn--ghost btn--small">
+          ↻ Refresh
         </button>
       </div>
 
       {ledger && (
-        <div className={`privacy-proof ${provesIsAuthor ? 'privacy-proof--yes' : 'privacy-proof--no'}`}>
-          <h3>Observable privacy behavior</h3>
+        <div className={`card privacy-proof ${provesIsAuthor ? 'privacy-proof--yes' : 'privacy-proof--no'}`}>
+          <h3>
+            <span className="privacy-proof__badge">{provesIsAuthor ? '✓' : '✗'}</span> Observable privacy behavior
+          </h3>
           <p>
             {provesIsAuthor
-              ? '✓ This browser can prove it authored the last post above — without ever sending its secret anywhere.'
-              : '✗ This browser cannot prove authorship of the last post (posted by a different wallet/secret).'}
+              ? 'This browser can prove it authored the last post above — without ever sending its secret anywhere.'
+              : "This browser cannot prove authorship of the last post (posted by a different wallet/secret)."}
           </p>
           <p className="privacy-proof__detail">
             The check: recompute <code>persistentHash(authorSecret)</code> locally, using the secret that has never

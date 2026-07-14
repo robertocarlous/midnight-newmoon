@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { deployWhisperWallContract } from '../midnight/contractClient';
 import { describeError } from '../midnight/errors';
+import { CopyableCode } from './CopyableCode';
 
 // deployContract waits indefinitely for the indexer to see the transaction
 // confirmed, with no built-in timeout - if the tx never lands (most often:
@@ -60,7 +61,11 @@ export function DeployPanel() {
   }, [status, api]);
 
   if (status !== 'connected' || !api) {
-    return <p className="board__hint">Connect a Lace wallet (funded on {networkId}) to deploy whisper-wall.</p>;
+    return (
+      <div className="card card--empty">
+        <p className="board__hint">Connect a Lace wallet (funded on {networkId}) to deploy whisper-wall.</p>
+      </div>
+    );
   }
 
   const handleDeploy = async () => {
@@ -95,11 +100,9 @@ export function DeployPanel() {
 
   if (address) {
     return (
-      <div className="deploy-panel deploy-panel--done">
+      <div className="card deploy-panel deploy-panel--done">
         <h3>✅ Deployed</h3>
-        <p>
-          Contract address: <code>{address}</code>
-        </p>
+        <CopyableCode value={address} full />
         <p className="deploy-panel__detail">
           Set <code>VITE_CONTRACT_ADDRESS={address}</code> and rebuild to point the app at this contract.
         </p>
@@ -108,7 +111,7 @@ export function DeployPanel() {
   }
 
   return (
-    <div className="deploy-panel">
+    <div className="card deploy-panel">
       <p className="board__hint">No contract configured yet. Deploy a fresh whisper-wall instance with the connected wallet.</p>
       {dust && (
         <p className="deploy-panel__detail">
@@ -116,14 +119,19 @@ export function DeployPanel() {
           {dust.balance === 0n && ' — likely too low to pay fees yet; deploy may hang until some has generated.'}
         </p>
       )}
-      <button onClick={handleDeploy} disabled={deploying}>
+      <button className="btn btn--primary" onClick={handleDeploy} disabled={deploying}>
         {deploying
           ? dustRetry
-            ? `Waiting for DUST… (attempt ${dustRetry.attempt}/${dustRetry.max})`
+            ? `Waiting for DUST… (${dustRetry.attempt}/${dustRetry.max})`
             : `Deploying… (${elapsed}s, this can take a few minutes)`
           : 'Deploy whisper-wall'}
       </button>
-      {error && <p className="board__error">{error}</p>}
+      {error && (
+        <div className="banner banner--error">
+          <strong>Deploy failed</strong>
+          <p>{error}</p>
+        </div>
+      )}
     </div>
   );
 }

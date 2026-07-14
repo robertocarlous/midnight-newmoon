@@ -1,8 +1,12 @@
 import { useWallet } from '../context/WalletContext';
+import { CopyableCode } from './CopyableCode';
 
-function shorten(address: string): string {
-  return address.length > 20 ? `${address.slice(0, 10)}…${address.slice(-8)}` : address;
-}
+const STATUS_LABEL: Record<string, string> = {
+  disconnected: 'Not connected',
+  connecting: 'Connecting…',
+  connected: 'Connected',
+  error: 'Connection error',
+};
 
 export function WalletBar() {
   const { status, error, unshieldedAddress, networkId, connect, disconnect } = useWallet();
@@ -10,19 +14,20 @@ export function WalletBar() {
   return (
     <div className="wallet-bar">
       <div className="wallet-bar__info">
-        <span className={`wallet-dot wallet-dot--${status}`} />
-        <span className="wallet-bar__network">{networkId}</span>
-        {status === 'connected' && unshieldedAddress && (
-          <code className="wallet-bar__address" title={unshieldedAddress}>
-            {shorten(unshieldedAddress)}
-          </code>
-        )}
+        <span className={`wallet-dot wallet-dot--${status}`} aria-hidden="true" />
+        <div className="wallet-bar__text">
+          <span className="wallet-bar__status">{STATUS_LABEL[status]}</span>
+          <span className="wallet-bar__network">{networkId} network</span>
+        </div>
+        {status === 'connected' && unshieldedAddress && <CopyableCode value={unshieldedAddress} className="wallet-bar__address" />}
       </div>
       <div className="wallet-bar__actions">
         {status === 'connected' ? (
-          <button onClick={disconnect}>Disconnect</button>
+          <button className="btn btn--ghost" onClick={disconnect}>
+            Disconnect
+          </button>
         ) : (
-          <button onClick={connect} disabled={status === 'connecting'}>
+          <button className="btn btn--primary" onClick={connect} disabled={status === 'connecting'}>
             {status === 'connecting' ? 'Connecting…' : 'Connect Lace'}
           </button>
         )}
