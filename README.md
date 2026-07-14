@@ -157,6 +157,17 @@ second circuit call or any additional disclosure.
 
 Deployed contract address (Preview): `079616525b2f3fbcedfcf7f21795a8453508825c8e51958a4e013ae48e06da3c`
 
+### Live frontend
+
+![Whisper Wall UI](docs/screenshot-ui.png)
+
+A connected wallet reading real on-chain state from the deployed contract
+above (`feedbackCount`, the last message, and its author commitment) — the
+✗ here is genuine, not staged: this particular browser/wallet isn't the
+one that posted that message, so it correctly can't prove authorship of
+it. Post from the same browser that authored the last message and it
+flips to ✓. Live at https://frontend-beta-gray-55.vercel.app.
+
 The compiled output shown above is committed at
 [`contracts/managed/whisper-wall/`](contracts/managed/whisper-wall/) —
 the ZK circuit ([`zkir/submitFeedback.zkir`](contracts/managed/whisper-wall/zkir/submitFeedback.zkir)),
