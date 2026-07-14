@@ -10,7 +10,9 @@ function App() {
     <WalletProvider>
       <div className="page">
         <header className="page__header">
-          <h1>🌒 Whisper Wall</h1>
+          <h1>
+            <span className="moon">🌒</span> <span className="brand-text">Whisper Wall</span>
+          </h1>
           <p className="page__tagline">An anonymous feedback board on Midnight — {DEFAULT_NETWORK}.</p>
         </header>
         <WalletBar />
